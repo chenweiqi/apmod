@@ -1,0 +1,47 @@
+使用方法：
+eg: http://www.example.com/js/??js1.js,js2.js,js3.js
+
+模块配置：
+打开apache配置文件httpd.conf
+LoadModule concatx_module modules/mod_concatx.dll
+
+高级配置：（以下是默认配置，可以不配置）
+<IfModule concatx_module>
+ConcatxDisable Off
+ConcatxCheckModified On
+ConcatxSeparator On
+ConcatxMaxSize 1024
+ConcatxMaxCount 10
+ConcatxFileType js,css
+</IfModule>
+
+详细说明：
+ConcatxDisable On/Off
+是否使用mod_concatx模块
+
+ConcatxCheckModified On/Off
+检查文件是否改动，建议On
+
+ConcatxSeparator On/Off
+合并文件时是否加换行分隔，建议On
+
+ConcatxMaxSize 数字
+合并文件总大小限制最大值，建议不要太大
+
+ConcatxMaxCount 数字
+合并文件总个数限制最大值，建议不要太大
+
+ConcatxFileType js,css等等
+合并文件类型限制，如不限制填","
+
+
+最后语：
+建议自己编译这个模块，安全放心
+
+后期改进：
+todo:考虑加入js,css压缩
+todo:考虑支持zend解析后的文件
+bug:目录存在默认页加载异常（考虑上层hook处理）
+
+
+http://blog.csdn.net/cwqcwk1/
