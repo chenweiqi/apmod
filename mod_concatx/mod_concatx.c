@@ -259,11 +259,18 @@ static int concat_handler(request_rec *r)
 	while (token) {
 		char *filename;
 		char *file2;
+		char *tmp;
 		apr_file_t *f = NULL;
 		apr_finfo_t finfo;
 
 		if(++count > maxCount)
 			break;
+
+		// deal with http://xxx/js/??a.js,b.js?ver=123
+		tmp = strchr(token, '?');
+		if (tmp != NULL)	{
+			tmp[0] = '\0';
+		}
 
 		if(setFileType != 0){
 			char *ext = strrchr(token, '.');
@@ -295,7 +302,6 @@ static int concat_handler(request_rec *r)
 			}
 		}
 
-		
 		rv = apr_filepath_merge(&file2, NULL, token,
 			APR_FILEPATH_SECUREROOTTEST |
 			APR_FILEPATH_NOTABSOLUTE, r->pool);
@@ -305,6 +311,10 @@ static int concat_handler(request_rec *r)
 				"mod_concat:filename looks fishy: %s", token);
 			return HTTP_FORBIDDEN;
 		}
+
+		// bugfix: while default page is there, apr will give me http://xxx/index.html??1.js,2.js
+		tmp = strrchr(r->filename, '/');
+		tmp[1] = '\0';
 		
 		filename = apr_pstrcat (r->pool, r->filename,  file2, NULL);
 		if ((rv = apr_file_open(&f, filename, APR_READ
