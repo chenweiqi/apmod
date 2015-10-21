@@ -84,6 +84,10 @@ static apr_off_t max_length = 1024* 1024;	//bytes
 static int set_file_type = -1;				//-1:default limit;0:no limit;>0:user limit
 static char **sep_file_type = NULL;
 
+static const char s_szDefalteFilterName[]="DEFLATE";  // gzip; deflate
+extern  __declspec(dllimport) module **ap_loaded_modules;
+static int mod_defalte_loaded = 0;
+
 static const char *
 	get_max_size(cmd_parms *cmd, void *dconfig, const char *value) {
 		long n = strtol(value, NULL, 0);
@@ -164,6 +168,7 @@ static const command_rec concat_cmds[] =
 
 static void *create_concat_config(apr_pool_t *p, char *dummy)
 {
+	int n;
 	concat_config_rec *newv =
 		(concat_config_rec *) apr_pcalloc(p, sizeof(concat_config_rec));
 
@@ -171,6 +176,13 @@ static void *create_concat_config(apr_pool_t *p, char *dummy)
 	newv->checkModified = 2;
 	newv->separator = 2;
 
+	for (n = 0; ap_loaded_modules[n]; ++n) {
+		char *s = (char *) ap_loaded_modules[n]->name;
+		if (apr_strnatcasecmp(s, "mod_deflate.c") == 0) {
+			mod_defalte_loaded = 1;
+			break;
+		}
+	}
 	return (void *) newv;
 }
 
@@ -234,14 +246,9 @@ static int concat_handler(request_rec *r)
 		return DECLINED;
 	}
 
-	if (!r->args) {
+	if (!r->args || r->args[0] != '?') {
 		return DECLINED;
 	}
-
-	if (r->args[0] != '?') {
-		return DECLINED;
-	}
-
 
 	conf = (concat_config_rec *) ap_get_module_config(r->per_dir_config, &concatx_module);
 	if (conf->disabled == 1)
@@ -381,10 +388,26 @@ static int concat_handler(request_rec *r)
 	}
 	return OK;
 }
+
+static int concat_type_checker(request_rec *r)
+{
+	if (!r->args || r->args[0] != '?') {
+		return DECLINED;
+	}
+
+	// support gzip
+	if ( mod_defalte_loaded ) {
+		ap_add_output_filter(s_szDefalteFilterName,NULL,r,r->connection);
+	}
+	
+    return DECLINED;
+}
+
 static void register_hooks(apr_pool_t *p)
 {
 	static const char * const aszPost[] = { "mod_autoindex.c", NULL };
 	// we want to have a look at the directories *BEFORE* autoindex gets to it
+    ap_hook_type_checker(concat_type_checker, NULL, NULL, APR_HOOK_MIDDLE);
 	ap_hook_handler(concat_handler,NULL,aszPost,APR_HOOK_MIDDLE);
 
 }
