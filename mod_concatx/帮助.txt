@@ -34,14 +34,17 @@ ConcatxMaxCount 数字
 ConcatxFileType js,css等等
 合并文件类型限制，如不限制填","
 
+另外，支持gzip压缩，但是依赖其他模块mod_deflate，开启方法如下：
+打开apache配置文件httpd.conf
+LoadModule deflate_module modules/mod_deflate.so
+
 
 最后语：
 建议自己编译这个模块，安全放心
 
 后期改进：
-todo:考虑加入js,css压缩
 todo:考虑支持zend解析后的文件
 bug:目录存在默认页加载异常（考虑上层hook处理）
 
 
-http://blog.csdn.net/cwqcwk1/
+http://blog.csdn.net/mycwq/

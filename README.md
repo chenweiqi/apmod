@@ -9,6 +9,7 @@ It is based on mod_concat but makes ​​improvements.
 1. use the browser cache in effect
 2. avoid service code leak
 3. avoid content stick together
+4. support gzip
 
 ### Usage
 ```html
@@ -51,3 +52,11 @@ Limit the max number of all files, suggest lower
 
 #### ConcatxFileType js,css
 File types, if without limiting fill ","
+
+
+### Support gzip
+This feature depend on mod_deflate, one of native apache modules
+so modify apache config "conf/httpd.conf", and add:
+```plain
+LoadModule deflate_module modules/mod_deflate.so
+```
