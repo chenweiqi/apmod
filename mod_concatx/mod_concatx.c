@@ -119,13 +119,20 @@ static const char *
 			int memsize = 8;
 			apr_pool_t *p = cmd->pool;
 			char **sep = (char **)malloc(sizeof(char *) * memsize);
+			char **sept = NULL;
 
 			configs = apr_pstrdup(p, value);
 			token = apr_strtok(configs, ",", &strtokstate);
 			while(token){
 				if(count >= memsize){
 					memsize += 8;
-					sep = (char **)realloc(sep, sizeof(char *) * memsize);
+					sept = (char **)realloc(sep, sizeof(char *) * memsize);
+					if (sept != NULL) {
+						sep = sept;
+					} else {
+						free(sep);
+						return NULL;
+					}
 				}
 				sep[count] = token;
 				count ++;
@@ -220,7 +227,6 @@ static int concat_handler(request_rec *r)
 	conn_rec *c = r->connection;
 
 	core_dir_config *d;
-	apr_file_t *f = NULL;
 	apr_off_t length=0;
 	apr_time_t mtime;
 	int count=0;
