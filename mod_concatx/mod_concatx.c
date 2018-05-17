@@ -85,7 +85,11 @@ static int set_file_type = -1;				//-1:default limit;0:no limit;>0:user limit
 static char **sep_file_type = NULL;
 
 static const char s_szDefalteFilterName[]="DEFLATE";  // gzip; deflate
+#if defined(WIN32)
 extern  __declspec(dllimport) module **ap_loaded_modules;
+#else
+extern module **ap_loaded_modules;
+#endif
 static int mod_defalte_loaded = 0;
 
 static const char *
